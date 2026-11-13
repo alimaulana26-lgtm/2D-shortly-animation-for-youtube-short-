@@ -23,11 +23,18 @@
         <div class="price-card" id="kartu"><small id="kartu-label">HARGA AIR MINERAL</small><strong id="kartu-harga">Rp4.000</strong></div>
 
         <!-- Maskot SHORTLY: gambar pose/ekspresi diganti oleh script.js sesuai scenes.js -->
-        <div class="character" id="character">
+        <div class="character" id="character" data-pose="berdiri">
           <div class="aura"></div>
           <div class="shadow"></div>
-          <img class="maskot" src="assets/pose-berdiri.webp" width="460" height="840" draggable="false"
-               alt="SHORTLY, maskot laki-laki berhoodie hitam berlogo S">
+          <!-- Tubuh 3 lapis dari gambar pose yang sama (kaki, badan, kepala) supaya bisa digerakkan terpisah -->
+          <div class="tubuh" id="tubuh">
+            <img class="lap kaki" src="assets/pose-berdiri.webp" width="460" height="840" draggable="false" alt="">
+            <img class="lap badan" src="assets/pose-berdiri.webp" width="460" height="840" draggable="false" alt="">
+            <img class="lap kepala" src="assets/pose-berdiri.webp" width="460" height="840" draggable="false"
+                 alt="SHORTLY, maskot laki-laki berhoodie hitam berlogo S">
+          </div>
+          <!-- Close-up wajah (dipakai saat kamera 'wajah') -->
+          <img class="bust" src="assets/wajah-senang.webp" width="460" height="540" draggable="false" alt="">
           <div class="ikon" id="ikon" aria-hidden="true"></div>
           <div class="speech" id="speech">Wah, murah juga!</div>
         </div>

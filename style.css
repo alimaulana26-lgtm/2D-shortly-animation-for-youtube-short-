@@ -212,21 +212,9 @@ body {
   height: calc(300 * var(--u));
   margin-left: calc(-82 * var(--u));
   transform: translate3d(calc(var(--w) * var(--x, 48) / 100), 0, 0);
-  transition: transform var(--jalan, 900ms) ease-in-out;
+  transition: transform var(--jalan, 900ms) ease-in-out var(--tunda, 0ms);
   will-change: transform;
   animation: bob 1.6s ease-in-out infinite;
-}
-.maskot {
-  position: relative;
-  z-index: 1;
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  transform-origin: 50% 100%;
-  pointer-events: none;
-  user-select: none;
-  -webkit-user-select: none;
 }
 /* Cahaya biru di belakang maskot: memisahkan hoodie hitam dari latar navy */
 .aura {
@@ -253,9 +241,6 @@ body {
 }
 
 /* Gerakan berjalan (kelas "walking" dipasang script.js): badan bergoyang & melompat kecil */
-.character.walking { animation-duration: 0.5s; }
-.character.walking .shadow { animation-duration: 0.5s; }
-.character.walking .maskot { animation: goyang 0.5s ease-in-out infinite alternate; }
 
 /* ---------- Gelembung ucapan (di atas kepala maskot) ---------- */
 .speech {
@@ -360,7 +345,7 @@ body {
 
 /* Bagi yang mematikan animasi di pengaturan HP */
 @media (prefers-reduced-motion: reduce) {
-  .character, .shadow, .beam, .character.walking .maskot { animation: none; }
+  .beam { animation: none; }
 }
 
 /* ==========================================================
@@ -378,18 +363,7 @@ body {
 }
 
 /* ---------- Mode close-up wajah (gambar ekspresi menggantikan gambar seluruh badan) ---------- */
-.character.wajah .maskot {
-  position: absolute;
-  left: 50%;
-  top: calc(-18 * var(--u));
-  width: calc(200 * var(--u));
-  height: auto;
-  margin-left: calc(-100 * var(--u));
-  -webkit-mask-image: linear-gradient(#000 80%, transparent);
-  mask-image: linear-gradient(#000 80%, transparent); /* bagian bawah memudar, tidak terpotong kasar */
-}
-.character.wajah .shadow,
-.character.wajah .speech { display: none; }
+.character.wajah .shadow { display: none; }
 
 /* ---------- Ikon ekspresi di dekat kepala (✦ ! ? …) ---------- */
 .ikon {
@@ -457,4 +431,149 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .cam { transition-duration: 0.01ms; }
   .price-card, .shop.sorot .shop-window span, .flash { animation: none !important; }
+}
+
+/* ==========================================================
+   TAHAP 4b: animasi karakter yang lebih hidup
+   Gambar pose dipecah jadi 3 lapis (kaki, badan, kepala) dari file yang sama.
+   Garis potong ada di --neck (leher) dan --hem (ujung hoodie), tiap pose berbeda.
+   Gerakannya kecil dan pelan; kalau terasa berlebihan, ubah angka di keyframes.
+   ========================================================== */
+.character { --neck: 45.8%; --hem: 68.1%; }
+.character[data-pose="berjalan"]    { --neck: 45.2%; --hem: 65.7%; }
+.character[data-pose="menunjuk"]    { --neck: 45.8%; --hem: 68.8%; }
+.character[data-pose="menjelaskan"] { --neck: 46.6%; --hem: 69.6%; }
+.character[data-pose="bereaksi"]    { --neck: 47%;   --hem: 67%; }
+
+.tubuh { position: absolute; inset: 0; transform-origin: 50% 100%; }
+.lap {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  will-change: transform;
+}
+.kaki   { z-index: 1; clip-path: inset(calc(var(--hem) - 1.6%) 0 0 0); transform-origin: 50% var(--hem); }
+.badan  { z-index: 2; clip-path: inset(calc(var(--neck) - 1.4%) 0 calc(100% - var(--hem)) 0); transform-origin: 50% var(--hem);
+          animation: napas 3.4s ease-in-out infinite; }
+.kepala { z-index: 3; clip-path: inset(0 0 calc(100% - var(--neck)) 0); transform-origin: 50% var(--neck);
+          animation: kepala-idle 3.4s ease-in-out 0.18s infinite; }
+
+/* Close-up wajah */
+.bust {
+  display: none;
+  position: absolute;
+  left: 50%;
+  top: calc(-18 * var(--u));
+  width: calc(200 * var(--u));
+  height: auto;
+  margin-left: calc(-100 * var(--u));
+  transform-origin: 50% 100%;
+  pointer-events: none;
+  user-select: none;
+  -webkit-mask-image: linear-gradient(#000 80%, transparent);
+  mask-image: linear-gradient(#000 80%, transparent);
+  animation: bust-napas 3.4s ease-in-out infinite;
+}
+.character.wajah .bust { display: block; }
+.character.wajah .tubuh { display: none; }
+.character.wajah .speech { bottom: calc(100% + 24 * var(--u)); }
+
+/* ---------- Idle (diam): bernapas dan kepala bergoyang pelan ---------- */
+@keyframes napas {
+  0%, 100% { transform: scale(1, 1) rotate(0); }
+  50% { transform: scale(1.006, 1.014) rotate(0.4deg); }
+}
+@keyframes kepala-idle {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(calc(-0.9 * var(--u))) rotate(0.7deg); }
+}
+@keyframes bust-napas {
+  0%, 100% { transform: scale(1) rotate(0); }
+  50% { transform: scale(1.014) rotate(0.6deg); }
+}
+
+/* ---------- Gerak tangan: menunjuk (badan condong maju lalu kembali) ---------- */
+.character[data-pose="menunjuk"] .badan { animation: tunjuk-badan 2.8s ease-in-out infinite; }
+.character[data-pose="menunjuk"] .kepala { animation: tunjuk-kepala 2.8s ease-in-out infinite; }
+@keyframes tunjuk-badan {
+  0%, 100% { transform: rotate(0); }
+  20% { transform: rotate(1.6deg) scale(1.006, 1.012); }
+  40% { transform: rotate(0.5deg); }
+}
+@keyframes tunjuk-kepala {
+  0%, 100% { transform: translate(0, 0) rotate(0); }
+  20% { transform: translate(calc(1.9 * var(--u)), calc(-0.8 * var(--u))) rotate(2.2deg); }
+  40% { transform: translate(calc(0.6 * var(--u)), 0) rotate(0.8deg); }
+}
+
+/* ---------- Gerak tangan: menjelaskan (badan bergoyang pelan, kepala miring mengikuti) ---------- */
+.character[data-pose="menjelaskan"] .badan { animation: jelaskan-badan 3.2s ease-in-out infinite; }
+.character[data-pose="menjelaskan"] .kepala { animation: jelaskan-kepala 3.2s ease-in-out infinite; }
+@keyframes jelaskan-badan {
+  0%, 100% { transform: rotate(-1deg) scale(1, 1); }
+  50% { transform: rotate(1.3deg) scale(1.004, 1.012); }
+}
+@keyframes jelaskan-kepala {
+  0%, 100% { transform: translate(calc(-1.2 * var(--u)), 0) rotate(-1.6deg); }
+  50% { transform: translate(calc(1.5 * var(--u)), calc(-0.9 * var(--u))) rotate(2deg); }
+}
+
+/* ---------- Berbicara: naik-turun halus (kelas "bicara" dipasang saat ada gelembung ucapan) ---------- */
+.character.bicara .badan { animation: bicara-badan 0.55s ease-in-out infinite alternate; }
+.character.bicara .kepala { animation: bicara-kepala 0.55s ease-in-out infinite alternate; }
+.character.bicara .bust { animation: bust-bicara 0.55s ease-in-out infinite alternate; }
+@keyframes bicara-badan { from { transform: scale(1, 1) rotate(0); } to { transform: scale(1.004, 1.011) rotate(0.3deg); } }
+@keyframes bicara-kepala {
+  from { transform: translateY(0) rotate(-0.6deg); }
+  to { transform: translateY(calc(-1.3 * var(--u))) rotate(0.9deg); }
+}
+@keyframes bust-bicara {
+  from { transform: translateY(0) rotate(-0.5deg) scale(1); }
+  to { transform: translateY(calc(-1.6 * var(--u))) rotate(0.7deg) scale(1.01); }
+}
+
+/* ---------- Berjalan: kaki mengayun dari pinggul, badan berlawanan, tubuh memantul tiap langkah ---------- */
+.character.walking { animation-duration: 0.6s; }
+.character.walking .shadow { animation-duration: 0.6s; }
+.character.walking .kaki { animation: langkah 0.6s ease-in-out infinite alternate; }
+.character.walking .badan { animation: badan-jalan 1.2s ease-in-out infinite; }
+.character.walking .kepala { animation: kepala-jalan 1.2s ease-in-out 0.08s infinite; }
+@keyframes langkah { from { transform: rotate(-6deg); } to { transform: rotate(6deg); } }
+@keyframes badan-jalan {
+  0%, 100% { transform: rotate(1.2deg); }
+  50% { transform: rotate(-1.2deg); }
+}
+@keyframes kepala-jalan {
+  0%, 100% { transform: translate(calc(1.3 * var(--u)), 0) rotate(1.2deg); }
+  50% { transform: translate(calc(-1.3 * var(--u)), 0) rotate(-1.2deg); }
+}
+
+/* ---------- Bereaksi: lompatan kecil dengan antisipasi (jongkok), peregangan, dan gepeng saat mendarat ---------- */
+.character[data-pose="bereaksi"] .tubuh { animation: hop 1.6s ease-in-out infinite; }
+.character[data-pose="bereaksi"] .badan,
+.character[data-pose="bereaksi"] .kepala { animation: none; }
+.character[data-pose="bereaksi"] .shadow { animation: bayangan-hop 1.6s ease-in-out infinite; }
+@keyframes hop {
+  0%   { transform: translateY(0) scale(1, 1); }
+  14%  { transform: translateY(0) scale(1.07, 0.9); }
+  38%  { transform: translateY(calc(-28 * var(--u))) scale(0.96, 1.07); }
+  50%  { transform: translateY(calc(-32 * var(--u))) scale(0.98, 1.03); }
+  72%  { transform: translateY(calc(-3 * var(--u))) scale(0.97, 1.05); }
+  80%  { transform: translateY(0) scale(1.08, 0.9); }
+  90%  { transform: translateY(0) scale(0.99, 1.02); }
+  100% { transform: translateY(0) scale(1, 1); }
+}
+@keyframes bayangan-hop {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  14%, 80% { transform: scale(1.1, 1); opacity: 0.95; }
+  45% { transform: scale(0.65); opacity: 0.45; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .badan, .kepala, .kaki, .tubuh, .bust, .shadow { animation: none !important; }
 }

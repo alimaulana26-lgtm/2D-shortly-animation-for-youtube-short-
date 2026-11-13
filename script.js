@@ -9,7 +9,8 @@
   var speech = $('speech'), caption = $('caption'), character = $('character');
   var cam = $('cam'), fade = $('fade'), flash = $('flash'), ikon = $('ikon');
   var kartu = $('kartu'), kartuLabel = $('kartu-label'), kartuHarga = $('kartu-harga'), toko = $('toko');
-  var maskot = character.querySelector('.maskot');
+  var tubuh = $('tubuh'), bust = character.querySelector('.bust');
+  var lapisan = character.querySelectorAll('.lap');
   var naskah = window.SHORTLY_NASKAH;
 
   // Pengaman: kalau scenes.js belum dimuat atau salah isi, beri pesan jelas.
@@ -29,6 +30,17 @@
     bingung: 'assets/wajah-bingung.webp', berpikir: 'assets/wajah-bingung.webp',
     serius: 'assets/wajah-serius.webp'
   };
+  // Wajah pada gambar tiap pose itu tetap (dari lembar karakter), jadi ekspresi harus cocok dengan pose.
+  var WAJAH_POSE = {
+    berdiri: ['serius', 'netral'], berjalan: ['netral', 'senang'], menunjuk: ['senang'],
+    menjelaskan: ['berpikir', 'serius', 'bingung'], bereaksi: ['senang']
+  };
+  function cocok(pose, ekspresi) { return WAJAH_POSE[pose].indexOf(ekspresi) !== -1; }
+  function poseCocok(ekspresi) {
+    var hasil = null;
+    ['menunjuk', 'menjelaskan', 'bereaksi', 'berdiri', 'berjalan'].forEach(function (p) { if (!hasil && cocok(p, ekspresi)) hasil = p; });
+    return hasil;
+  }
   var IKON = { senang: '✦', terkejut: '!', bingung: '?', berpikir: '…', serius: '' };
   [POSE, WAJAH].forEach(function (grup) {          // muat semua gambar di awal supaya pergantian mulus
     Object.keys(grup).forEach(function (k) { new Image().src = grup[k]; });
@@ -36,7 +48,7 @@
 
   var awalKartu = { label: kartuLabel.textContent, harga: kartuHarga.textContent };
   var poseNow = 'berdiri', ekspresiNow = null, wajahNow = false, posisiNow = naskah.posisiAwal, idAdegan = 0;
-  var FADE_MS = 240, FADE_KELUAR = 800;
+  var FADE_MS = 240, FADE_KELUAR = 800, TUNDA = 160;   // TUNDA = jeda 'ancang-ancang' sebelum karakter berjalan
 
   /* ---------- Jadwal ---------- */
   var timers = [];
@@ -47,22 +59,43 @@
   function resetPosisi() {
     character.classList.remove('walking');
     character.style.setProperty('--jalan', '0ms');
+    character.style.setProperty('--tunda', '0ms');
     character.style.setProperty('--x', naskah.posisiAwal);
     void character.offsetWidth;
   }
-  function jalanKe(posisi, ms) {
-    character.style.setProperty('--jalan', ms + 'ms');
-    character.style.setProperty('--x', posisi);
-    character.classList.add('walking');
-    var id = idAdegan;
-    later(function () { if (id === idAdegan) character.classList.remove('walking'); }, ms);
+  // Efek squash & stretch sekali jalan (Web Animations API, ringan)
+  function efek(el, frames, ms, easing) {
+    if (el.animate) el.animate(frames, { duration: ms, easing: easing || 'ease-out' });
   }
-  function tampilGambar() {
+  var ANTISIPASI = [{ transform: 'scale(1,1)' }, { transform: 'scale(1.05,0.93)', offset: 0.6 }, { transform: 'scale(1,1)' }];
+  var BERHENTI = [{ transform: 'scale(1.04,0.95)' }, { transform: 'scale(0.99,1.015)', offset: 0.6 }, { transform: 'scale(1,1)' }];
+  var KAGET = [{ transform: 'scale(1,1)' }, { transform: 'scale(0.95,0.93)', offset: 0.15 },
+               { transform: 'scale(1.09,1.12) translateY(-6px)', offset: 0.35 }, { transform: 'scale(1.02,1.03)', offset: 0.65 }, { transform: 'scale(1,1)' }];
+  var MUNCUL = [{ transform: 'scale(0.95,1.04)' }, { transform: 'scale(1,1)' }];
+
+  function jalanKe(posisi, ms) {
+    var id = idAdegan;
+    character.style.setProperty('--jalan', ms + 'ms');
+    character.style.setProperty('--tunda', TUNDA + 'ms');
+    character.style.setProperty('--x', posisi);
+    efek(tubuh, ANTISIPASI, TUNDA + 100);                       // jongkok sedikit sebelum melangkah
+    later(function () { if (id === idAdegan) character.classList.add('walking'); }, TUNDA);
+    later(function () { if (id === idAdegan) character.classList.remove('walking'); }, TUNDA + ms);
+  }
+  var srcNow = '';
+  function tampilGambar(pop) {
     var src = wajahNow ? WAJAH[ekspresiNow || 'senang'] : POSE[poseNow];
     character.classList.toggle('wajah', wajahNow);
-    if (maskot.getAttribute('src') !== src) {
-      maskot.setAttribute('src', src);
-      if (maskot.animate) maskot.animate([{ transform: 'scale(0.94, 1.05)' }, { transform: 'scale(1)' }], { duration: 220, easing: 'ease-out' });
+    character.setAttribute('data-pose', poseNow);
+    var kunci = (wajahNow ? 'w:' : 'p:') + src;
+    if (kunci === srcNow) return;
+    srcNow = kunci;
+    if (wajahNow) {
+      bust.setAttribute('src', src);
+      if (pop !== false) efek(bust, ekspresiNow === 'terkejut' ? KAGET : MUNCUL, ekspresiNow === 'terkejut' ? 700 : 220);
+    } else {
+      for (var i = 0; i < lapisan.length; i++) lapisan[i].setAttribute('src', src);
+      if (pop !== false) efek(tubuh, MUNCUL, 220);
     }
   }
   function setIkon(nama) {
@@ -77,7 +110,7 @@
     if (typeof k === 'string') k = { fokus: k };
     k = k || { fokus: 'lebar' };
     var f = k.fokus || 'lebar', x, y, z;
-    if (f === 'karakter') { x = posisiNow; y = 52; z = 1.25; }
+    if (f === 'karakter') { x = posisiNow; y = 55; z = 1.25; }
     else if (f === 'wajah') { x = posisiNow; y = 41; z = 1.3; }
     else if (Array.isArray(f)) { x = f[0]; y = f[1]; z = 1.4; }
     else { x = FOKUS[f][0]; y = FOKUS[f][1]; z = FOKUS[f][2]; }
@@ -111,19 +144,29 @@
     poseNow = a.pose || 'berdiri';
     ekspresiNow = a.ekspresi || null;
     wajahNow = namaKamera === 'wajah' && !!a.ekspresi;
+    // Pengaman: ekspresi harus cocok dengan wajah pada gambar pose
+    if (ekspresiNow && !wajahNow && !cocok(poseNow, ekspresiNow)) {
+      var p = poseCocok(ekspresiNow);
+      if (p) { console.warn('SHORTLY: pose "' + poseNow + '" tidak cocok dengan ekspresi "' + ekspresiNow + '", diganti ke "' + p + '".'); poseNow = p; }
+      else { console.warn('SHORTLY: ekspresi "' + ekspresiNow + '" hanya ada sebagai close-up, memakai kamera wajah.'); wajahNow = true; k = 'wajah'; }
+    }
+    character.classList.toggle('bicara', !!a.ucapan);   // berbicara: naik-turun halus
 
     var ms = a.jalanMs || 900;
     if (bergerak && !wajahNow) {            // saat berpindah tempat: pose berjalan, lalu kembali ke pose adegan
       var poseAkhir = poseNow;
       poseNow = 'berjalan';
       jalanKe(a.posisi, ms);
-      later(function () { if (id === idAdegan) { poseNow = poseAkhir; tampilGambar(); } }, ms);
+      later(function () {
+        if (id !== idAdegan) return;
+        poseNow = poseAkhir; tampilGambar(false); efek(tubuh, BERHENTI, 320);   // berhenti dengan sedikit mengendap
+      }, TUNDA + ms);
     } else if (bergerak) {
       jalanKe(a.posisi, ms);
     }
     tampilGambar();
     setIkon(a.ekspresi);
-    setKamera(k, bergerak ? ms : 1000);
+    setKamera(k, bergerak ? ms + TUNDA : 1000);
 
     if (a.kartu) {
       if (a.kartu.label) kartuLabel.textContent = a.kartu.label;
@@ -139,8 +182,9 @@
     caption.textContent = naskah.teksAwal;
     idAdegan++;
     poseNow = 'berdiri'; ekspresiNow = null; wajahNow = false; posisiNow = naskah.posisiAwal;
+    character.classList.remove('bicara');
     resetPosisi();
-    tampilGambar();
+    tampilGambar(false);
     setIkon(null);
     cam.style.transition = 'none';               // Ulangi: kamera kembali seketika, tanpa gerakan
     setKamera('lebar', 0);
@@ -157,25 +201,28 @@
   function play() {
     clearTimers();
     resetSemua();
-    if (naskah.adegan[0].transisi === 'masuk') {     // mulai dari layar hitam lalu terang perlahan
+    if ([].concat(naskah.adegan[0].transisi || []).indexOf('masuk') !== -1) {     // mulai dari layar hitam lalu terang perlahan
       fade.style.transition = 'none'; fade.className = 'fade on'; void fade.offsetWidth; fade.style.transition = '';
       later(function () { fade.className = 'fade lambat'; }, 50);
     }
     var waktu = 0, posisi = naskah.posisiAwal;
     naskah.adegan.forEach(function (a) {
       var sebelumnya = posisi, t0 = waktu, jeda = 0;
-      if (a.transisi === 'fade') {
+      var tr = [].concat(a.transisi || []);                 // boleh satu atau beberapa transisi
+      var fadeDulu = tr.indexOf('fade') !== -1;
+      if (fadeDulu) {
         later(function () { fade.className = 'fade on'; }, t0);
         jeda = FADE_MS;
-      } else if (a.transisi === 'kilat') {
+      } else if (tr.indexOf('kilat') !== -1) {
         later(function () { flash.classList.remove('on'); void flash.offsetWidth; flash.classList.add('on'); }, t0);
         jeda = 110;
-      } else if (a.transisi === 'keluar') {
+      }
+      if (tr.indexOf('keluar') !== -1) {
         later(function () { fade.className = 'fade lambat on'; }, t0 + a.durasi - FADE_KELUAR);
       }
       later(function () {
         tampilkanAdegan(a, sebelumnya);
-        if (a.transisi === 'fade') fade.className = 'fade';
+        if (fadeDulu) fade.className = 'fade';
       }, t0 + jeda);
       if (a.posisi !== undefined) posisi = a.posisi;
       waktu += a.durasi;
