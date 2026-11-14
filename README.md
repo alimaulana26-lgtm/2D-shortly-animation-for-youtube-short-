@@ -33,7 +33,3 @@ Jika browser Android tidak membuka file lokal dengan benar, unggah folder ini ke
 
 ## Mengembangkan animasi
 Minta Claude mengedit `index.html`, `style.css`, dan `script.js` secara bertahap. Beri instruksi agar desain karakter tetap konsisten. Jangan masukkan API key atau kata sandi ke repository.
-
-
-## Cerita aktif
-Versi ini menggunakan cerita **Doorway Effect** (lupa tujuan setelah masuk ke ruangan). Naskah dan durasi adegan diatur melalui `scenes.js`.
