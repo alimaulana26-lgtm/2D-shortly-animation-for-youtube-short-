@@ -73,14 +73,16 @@
                { transform: 'scale(1.09,1.12) translateY(-6px)', offset: 0.35 }, { transform: 'scale(1.02,1.03)', offset: 0.65 }, { transform: 'scale(1,1)' }];
   var MUNCUL = [{ transform: 'scale(0.95,1.04)' }, { transform: 'scale(1,1)' }];
 
-  function jalanKe(posisi, ms) {
+  function jalanKe(posisi, ms, dariPosisi) {
     var id = idAdegan;
+    // Sprite berjalan menghadap kanan: kalau tujuan di sebelah kiri, gambar dicerminkan sementara
+    character.style.setProperty('--balik', posisi < dariPosisi ? -1 : 1);
     character.style.setProperty('--jalan', ms + 'ms');
     character.style.setProperty('--tunda', TUNDA + 'ms');
     character.style.setProperty('--x', posisi);
     efek(tubuh, ANTISIPASI, TUNDA + 100);                       // jongkok sedikit sebelum melangkah
     later(function () { if (id === idAdegan) character.classList.add('walking'); }, TUNDA);
-    later(function () { if (id === idAdegan) character.classList.remove('walking'); }, TUNDA + ms);
+    later(function () { if (id === idAdegan) { character.classList.remove('walking'); character.style.setProperty('--balik', 1); } }, TUNDA + ms);
   }
   var srcNow = '';
   function tampilGambar(pop) {
@@ -111,7 +113,7 @@
     k = k || { fokus: 'lebar' };
     var f = k.fokus || 'lebar', x, y, z;
     if (f === 'karakter') { x = posisiNow; y = 55; z = 1.25; }
-    else if (f === 'wajah') { x = posisiNow; y = 41; z = 1.3; }
+    else if (f === 'wajah') { x = posisiNow; y = 37.7; z = 1.5; }   // tepi bawah gambar wajah tersembunyi di balik subtitle, tangan di dagu tetap terlihat
     else if (Array.isArray(f)) { x = f[0]; y = f[1]; z = 1.4; }
     else { x = FOKUS[f][0]; y = FOKUS[f][1]; z = FOKUS[f][2]; }
     z = k.zoom || z;
@@ -122,6 +124,20 @@
     cam.style.setProperty('--cz', z);
     cam.style.setProperty('--cx', tx + '%');
     cam.style.setProperty('--cy', ty + '%');
+    aturKartu(z, tx, ty, parseFloat(cam.style.getPropertyValue('--cam-ms')) || 0);
+  }
+
+  // Kartu harga: tampil hanya kalau SELURUHNYA berada di dalam layar pada posisi kamera tujuan
+  function aturKartu(z, tx, ty, camMs) {
+    var W = cam.offsetWidth, H = cam.offsetHeight, m = W * 0.03;
+    var kiri = -tx * W / 100 / z, kanan = (W - tx * W / 100) / z, atas = -ty * H / 100 / z, bawah = (H - ty * H / 100) / z;
+    var penuh = kartu.offsetLeft - m >= kiri && kartu.offsetLeft + kartu.offsetWidth + m <= kanan &&
+                kartu.offsetTop - m >= atas && kartu.offsetTop + kartu.offsetHeight + m <= bawah;
+    var id = idAdegan;
+    if (!penuh) { kartu.classList.add('sembunyi'); }
+    else if (kartu.classList.contains('sembunyi')) {      // muncul lagi setelah kamera hampir sampai
+      later(function () { if (id === idAdegan) kartu.classList.remove('sembunyi'); }, camMs * 0.7);
+    }
   }
 
   /* ---------- Objek ---------- */
@@ -156,13 +172,13 @@
     if (bergerak && !wajahNow) {            // saat berpindah tempat: pose berjalan, lalu kembali ke pose adegan
       var poseAkhir = poseNow;
       poseNow = 'berjalan';
-      jalanKe(a.posisi, ms);
+      jalanKe(a.posisi, ms, sebelumnya);
       later(function () {
         if (id !== idAdegan) return;
         poseNow = poseAkhir; tampilGambar(false); efek(tubuh, BERHENTI, 320);   // berhenti dengan sedikit mengendap
       }, TUNDA + ms);
     } else if (bergerak) {
-      jalanKe(a.posisi, ms);
+      jalanKe(a.posisi, ms, sebelumnya);
     }
     tampilGambar();
     setIkon(a.ekspresi);
@@ -183,6 +199,8 @@
     idAdegan++;
     poseNow = 'berdiri'; ekspresiNow = null; wajahNow = false; posisiNow = naskah.posisiAwal;
     character.classList.remove('bicara');
+    character.style.setProperty('--balik', 1);
+    kartu.classList.remove('sembunyi');
     resetPosisi();
     tampilGambar(false);
     setIkon(null);

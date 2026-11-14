@@ -15,6 +15,7 @@
    - kamera *  : 'lebar' | 'karakter' | 'wajah' | 'kartu' | 'toko'
                  atau { fokus:'kartu', zoom:1.7, ms:1000, ease:'linear' }
                  atau titik bebas { fokus:[60, 50], zoom:1.2 }
+   - posisi di kiri/kanan: sprite berjalan menghadap KANAN. Berjalan ke kiri otomatis dicerminkan.
    - transisi *: 'masuk' | 'fade' | 'kilat' | 'keluar'  (boleh beberapa: ['fade','keluar'])
    - kartu *   : { label:'...', harga:'...', aksi:'pop' | 'sorot' | 'goyang' }
    - toko *    : 'sorot'
@@ -32,7 +33,7 @@
    ========================================================== */
 window.SHORTLY_NASKAH = {
   teksAwal: 'Kenapa harga barang bisa berbeda?',
-  posisiAwal: 48,
+  posisiAwal: 18,   // karakter masuk dari kiri lalu berjalan ke KANAN (sprite berjalan menghadap kanan)
 
   adegan: [
     // 1. Masuk sambil penasaran dengan pertanyaan di awal
@@ -43,7 +44,7 @@ window.SHORTLY_NASKAH = {
     // 2. Harga Rp4.000 murah -> SENANG (melompat kecil)
     { teks: 'Kenapa harga barang bisa berbeda?', ucapan: 'Wah, murah juga!',
       posisi: 38, durasi: 2200, pose: 'bereaksi', ekspresi: 'senang',
-      kamera: { fokus: 'karakter', zoom: 1.2, ms: 2200, ease: 'linear' },
+      kamera: { fokus: [55, 50], zoom: 1.12, ms: 2200, ease: 'linear' },   // dorong pelan, kartu harga tetap utuh
       kartu: { aksi: 'pop' } },
 
     // 3. Menunjuk kartu harga -> SENANG
@@ -75,7 +76,7 @@ window.SHORTLY_NASKAH = {
     // 8. Menjelaskan -> SERIUS
     { teks: 'Lokasi, biaya, dan kemudahan memengaruhi harga.', ucapan: 'Ada alasannya!',
       posisi: 38, durasi: 3000, pose: 'menjelaskan', ekspresi: 'serius',
-      kamera: { fokus: 'karakter', zoom: 1.15, ms: 1200 }, toko: 'sorot' },
+      kamera: { fokus: [55, 52], zoom: 1.12, ms: 1200 }, toko: 'sorot' },
 
     // 9. Kesimpulan -> SERIUS (close-up)
     { teks: 'Jadi, harga bukan sekadar angka.', ucapan: null,
