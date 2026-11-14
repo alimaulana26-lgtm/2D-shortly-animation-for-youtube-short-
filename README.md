@@ -33,3 +33,7 @@ Jika browser Android tidak membuka file lokal dengan benar, unggah folder ini ke
 
 ## Mengembangkan animasi
 Minta Claude mengedit `index.html`, `style.css`, dan `script.js` secara bertahap. Beri instruksi agar desain karakter tetap konsisten. Jangan masukkan API key atau kata sandi ke repository.
+
+
+## Cerita aktif
+Versi ini menggunakan cerita **Kenapa barang yang sama bisa punya harga berbeda?** Naskah dan durasi adegan diatur melalui `scenes.js`. Ekspresi dan pose dipilih agar lebih tenang dan sesuai narasi; pose melompat tidak digunakan pada adegan bingung atau penutup.

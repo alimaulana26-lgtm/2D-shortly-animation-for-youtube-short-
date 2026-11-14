@@ -94,42 +94,23 @@ body {
   height: calc(260 * var(--u));
 }
 
-/* ---------- Toko ---------- */
-.shop {
-  position: absolute;
-  bottom: calc(254 * var(--u));
-  left: 7%;
-  width: 50%;
-  height: calc(225 * var(--u));
-  background: linear-gradient(#0d1b3d, #091329);
-  border: calc(3 * var(--u)) solid var(--biru);
-  border-radius: calc(8 * var(--u)) calc(8 * var(--u)) 0 0;
-  box-shadow: 0 0 calc(22 * var(--u)) rgba(43, 123, 255, 0.45);
+/* ---------- Ruangan dan pintu: visual utama Doorway Effect ---------- */
+.skyline { display: none; }
+.room {
+  position: absolute; bottom: calc(254 * var(--u)); left: 6%; width: 64%; height: calc(270 * var(--u));
+  overflow: visible; background: linear-gradient(145deg, #172b55 0%, #0b1836 72%);
+  border: calc(3 * var(--u)) solid var(--biru); border-bottom: 0;
+  border-radius: calc(10 * var(--u)) calc(10 * var(--u)) 0 0;
+  box-shadow: 0 0 calc(26 * var(--u)) rgba(43,123,255,.42), inset 0 0 calc(28 * var(--u)) rgba(106,166,255,.12);
 }
-.awning {
-  height: calc(48 * var(--u));
-  padding-top: calc(13 * var(--u));
-  border-bottom: calc(3 * var(--u)) solid var(--biru);
-  background: repeating-linear-gradient(90deg, #0b1836 0 calc(28 * var(--u)), #142a5c calc(28 * var(--u)) calc(56 * var(--u)));
-  color: var(--putih);
-  font-size: calc(16 * var(--u));
-  font-weight: 900;
-  letter-spacing: 0.06em;
-  text-align: center;
-  text-shadow: 0 0 calc(10 * var(--u)) var(--biru), 0 0 calc(3 * var(--u)) var(--biru-terang);
-}
-.shop-window {
-  width: 80%;
-  height: calc(105 * var(--u));
-  margin: calc(25 * var(--u)) auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  border: calc(3 * var(--u)) solid var(--biru-terang);
-  background: radial-gradient(circle at 50% 40%, rgba(106, 166, 255, 0.55), rgba(43, 123, 255, 0.18));
-  font-size: calc(27 * var(--u));
-}
-
+.room::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: calc(8 * var(--u)); background: var(--biru-terang); opacity: .75; }
+.room-picture { position: absolute; left: 10%; top: 18%; width: 24%; height: 28%; border: calc(3 * var(--u)) solid rgba(106,166,255,.75); background: linear-gradient(145deg,#203d76,#0a1630); box-shadow: 0 0 calc(12 * var(--u)) rgba(43,123,255,.3); display:grid; place-items:center; color:#a9ceff; font-size:calc(30 * var(--u)); }
+.door-frame { position:absolute; right: 9%; bottom: 0; width: 39%; height: 86%; padding: calc(8 * var(--u)) calc(8 * var(--u)) 0; background: linear-gradient(90deg,#6aa6ff,#203d76 18%,#142a52 82%,#6aa6ff); border-radius: calc(7 * var(--u)) calc(7 * var(--u)) 0 0; box-shadow: 0 0 calc(18 * var(--u)) rgba(43,123,255,.55); }
+.door { position:relative; width:100%; height:100%; background: linear-gradient(100deg,#071126,#142b55 55%,#08142d); border: calc(2 * var(--u)) solid #8abaff; border-bottom:0; transform-origin:left center; box-shadow: inset calc(8 * var(--u)) 0 calc(15 * var(--u)) rgba(0,0,0,.5); }
+.door-panel { position:absolute; left:15%; width:70%; border: calc(2 * var(--u)) solid rgba(106,166,255,.38); border-radius: calc(3 * var(--u)); }
+.door-panel-top { top:10%; height:34%; } .door-panel-bottom { top:51%; height:35%; }
+.door-knob { position:absolute; right:12%; top:49%; width:calc(9 * var(--u)); height:calc(9 * var(--u)); border-radius:50%; background:#b9d7ff; box-shadow:0 0 calc(8 * var(--u)) #6aa6ff; }
+.door-glow { position:absolute; right: 15%; top: 15%; width: 28%; height: 68%; pointer-events:none; background:linear-gradient(90deg,transparent,rgba(80,151,255,.16),transparent); filter:blur(calc(8 * var(--u))); }
 /* ---------- Lantai ---------- */
 .ground {
   position: absolute;
@@ -196,7 +177,7 @@ body {
   box-shadow: 0 0 calc(18 * var(--u)) rgba(43, 123, 255, 0.55);
 }
 .price-card small { display: block; font-size: max(8px, calc(9 * var(--u))); font-weight: bold; color: var(--biru-terang); }
-.price-card strong { font-size: calc(24 * var(--u)); }
+.price-card strong { font-size: max(12px, calc(20 * var(--u))); }
 
 /* ==========================================================
    Maskot SHORTLY
@@ -405,11 +386,9 @@ body {
 }
 
 /* ---------- Animasi objek: minuman di jendela toko melompat bergantian ---------- */
-.shop.sorot { box-shadow: 0 0 calc(34 * var(--u)) rgba(106, 166, 255, 0.8); }
-.shop.sorot .shop-window span { animation: loncat 0.7s ease-in-out infinite; }
-.shop.sorot .shop-window span:nth-child(2) { animation-delay: 0.15s; }
-.shop.sorot .shop-window span:nth-child(3) { animation-delay: 0.3s; }
-@keyframes loncat { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(calc(-14 * var(--u))) scale(1.15); } }
+.room.sorot { box-shadow: 0 0 calc(36 * var(--u)) rgba(106, 166, 255, 0.9), inset 0 0 calc(30 * var(--u)) rgba(106,166,255,.22); }
+.room.sorot .door-frame { animation: door-glow 1s ease-in-out infinite alternate; }
+@keyframes door-glow { from { filter: brightness(1); } to { filter: brightness(1.45); } }
 
 /* ---------- Transisi: fade hitam & kilat biru ---------- */
 .fade {
